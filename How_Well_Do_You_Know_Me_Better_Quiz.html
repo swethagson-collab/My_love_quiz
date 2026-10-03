@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="ta">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>How Well Do You Know Me? 💗</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,"Noto Sans Tamil",sans-serif;background:linear-gradient(135deg,#ffe4ef,#f4e7ff);min-height:100vh;color:#333}
+.wrap{max-width:680px;margin:auto;padding:18px 12px 40px}
+.card{background:#fff;border-radius:24px;padding:22px;box-shadow:0 10px 35px rgba(120,50,100,.15)}
+.header{text-align:center;padding:8px 5px 18px}
+.heart{font-size:42px}.header h1{margin:5px 0;color:#d63384;font-size:27px}.header p{margin:8px 0;color:#777}
+.progress{height:9px;background:#f1d7e5;border-radius:20px;overflow:hidden;margin:12px 0 22px}
+.progress span{display:block;height:100%;width:0;background:#d63384;border-radius:20px;transition:.25s}
+.question{display:none}.question.active{display:block}
+.num{color:#d63384;font-weight:bold;font-size:14px;margin-bottom:7px}
+.question h2{font-size:19px;line-height:1.45;margin:0 0 15px}
+.option{display:flex;align-items:center;gap:12px;padding:14px;margin:9px 0;border:2px solid #f0d4e1;border-radius:14px;background:#fff;cursor:pointer;transition:.15s}
+.option input{display:none}
+.radio{width:21px;height:21px;border:2px solid #c99ab2;border-radius:50%;flex:none}
+.option.selected{border-color:#d63384;background:#fff0f6}
+.option.selected .radio{border:6px solid #d63384}
+.option span:last-child{line-height:1.4}
+.nav{display:flex;gap:10px;margin-top:18px}
+button{flex:1;border:0;border-radius:13px;padding:14px;font-size:16px;font-weight:bold;cursor:pointer}
+.back{background:#eee;color:#555}.next,.submit{background:#d63384;color:white}
+button:disabled{opacity:.45;cursor:not-allowed}
+#result{text-align:center;display:none}
+.score{font-size:46px;font-weight:bold;color:#d63384;margin:15px}
+.resultbox{background:#fff0f6;border-radius:18px;padding:18px;margin:15px 0}
+.restart{background:#d63384;color:#fff;width:100%}
+.note{text-align:center;color:#888;font-size:12px;margin-top:15px}
+</style>
+</head>
+<body>
+<div class="wrap"><div class="card">
+<div id="quizPage">
+<div class="header">
+<div class="heart">💗</div>
+<h1>How Well Do You Know Me?</h1>
+<p>Let's see how well you know your girl 😏❤️</p>
+</div>
+<div class="progress"><span id="bar"></span></div>
+<div id="questions"></div>
+<div class="nav">
+<button class="back" id="back" onclick="move(-1)">← Back</button>
+<button class="next" id="next" onclick="move(1)">Next →</button>
+</div>
+<p class="note">Choose one answer for each question.</p>
+</div>
+
+<div id="result">
+<div class="heart">🥰</div>
+<h1>Your Result</h1>
+<div class="score" id="score"></div>
+<div class="resultbox" id="message"></div>
+<button class="restart" onclick="restart()">🔄 Try Again</button>
+</div>
+</div></div>
+
+<script>
+const data=[
+["என்னுடைய favourite food என்ன? 🍗",["Pizza","Biryani","Fried Rice","Parotta"],1],
+["எனக்கு ரொம்ப பிடிச்ச colour எது? 💙",["Pink","Black","Blue","White"],2],
+["நான் கோபமா இருக்கும்போது நீ என்ன செய்யணும்? 🥺",["கொஞ்ச நேரம் தனியா விடணும்","சிரிக்க வைக்கணும்","அமைதியா இருக்கணும்","கட்டிப்பிடிச்சு ஆறுதல் சொல்லணும்"],3],
+["என்னுடைய biggest dream என்ன? 💼",["நல்ல வேலை கிடைத்து சொந்தக் காலில் நிற்கணும்","வெளிநாட்டுக்கு போகணும்","பெரிய business ஆரம்பிக்கணும்","நிறைய travel பண்ணணும்"],0],
+["நான் “ஒன்னும் இல்ல”ன்னு சொன்னா உண்மையில என்ன அர்த்தம்? 👀",["உண்மையிலேயே ஒன்னும் இல்லை","எனக்கு கோபம்","நீயே என்னைப் புரிஞ்சுக்கணும்னு எதிர்பார்ப்பேன்","நான் பேச விரும்பல"],2],
+["என்னை உண்மையிலேயே சந்தோஷப்படுத்துற விஷயம் என்ன? ❤️",["Gifts","Surprise","நிறைய நேரம் பேசுவது","நான் சொல்லாமலேயே என் feelings-ஐ புரிஞ்சுக்கிறது"],3],
+["நான் யாராலாவது hurt ஆனா பொதுவா என்ன செய்வேன்? 🥺",["உடனே கோபமா பேசுவேன்","எதுவும் நடக்காத மாதிரி இருப்பேன்","தனியா இருந்து அழுவேன்","உடனே அந்த person-கிட்ட பேசுவேன்"],2],
+["நான் ரொம்ப சந்தோஷமா இருக்கும்போது எப்படி இருப்பேன்? 😍",["அமைதியா இருப்பேன்","தூங்கிடுவேன் 😂","எல்லாரிடமும் அமைதியா இருப்பேன்","எனக்குப் பிடிச்சவங்ககிட்ட இன்னும் அதிகமா பேசுவேன்"],3],
+["நான் உன்னை அதிகமா எப்போது miss பண்ணுவேன்? 💕",["நீ online இல்லாதபோது","நான் தனியா இருக்கும்போது","நம்ம cute moments நினைவுக்கு வரும்போது","நீ busy-ஆ இருக்கும்போது"],2],
+["நம்ம ரெண்டு பேருக்கும் சண்டை வந்தா, நான் என்ன எதிர்பார்ப்பேன்? 🫶",["நீ முதலில் வந்து பேசணும்","என்னை தனியா விடணும்","நானே முதலில் பேசணும்","எதுவும் நடக்காத மாதிரி இருக்கணும்"],0],
+["என்னுடைய மனசை அதிகமா கஷ்டப்படுத்துற விஷயம் என்ன? 😔",["என்னை ignore பண்ணுவது","என்னோட சண்டை போடுவது","Late-ஆ reply பண்ணுவது","என்னை tease பண்ணுவது"],0],
+["நான் அதிகமா எதிர்பார்க்கிற Love Language எது? ❤️",["Romantic messages","Gifts","Dates","வார்த்தைகள் இல்லாமலேயே என்னைப் புரிஞ்சுக்கிறது"],3],
+["Future-ஐ நினைக்கும்போது எனக்கு அதிகமா என்ன பயம் இருக்கும்? 🥺",["தோல்வி அடைவது","எனக்குப் பிடிச்சவங்களை இழந்துவிடுவது","தனியா இருப்பது","வேலை கிடைக்காமல் போவது"],1],
+["நான் உன்னிடம் அதிகமா எதை எதிர்பார்ப்பேன்? 💗",["எப்போதும் என்னுடன் பேசணும்","எனக்காக gifts வாங்கணும்","என்னுடைய feelings-ஐ மதிக்கணும்","என்னை எப்போதும் சிரிக்க வைக்கணும்"],2],
+["நான் ரொம்ப சோகமா இருக்கும்போது, நீ எப்படி நடந்துக்கணும்னு நான் எதிர்பார்ப்பேன்? 🫂",["என்னை தனியா விடணும்","Advice கொடுக்கணும்","கட்டிப்பிடிச்சு அன்பா ஆறுதல் சொல்லணும்","என்னை சிரிக்க வைக்கணும்"],2]
+];
+let current=0, answers=Array(data.length).fill(null);
+const qs=document.getElementById("questions");
+data.forEach((d,i)=>{
+ let q=document.createElement("div");q.className="question"+(i===0?" active":"");q.id="q"+i;
+ q.innerHTML=`<div class="num">QUESTION ${i+1} / ${data.length}</div><h2>${d[0]}</h2>`;
+ d[1].forEach((op,j)=>{
+  q.innerHTML+=`<label class="option" onclick="selectOption(${i},${j},this)"><input type="radio"><span class="radio"></span><span>${String.fromCharCode(65+j)}) ${op}</span></label>`;
+ });
+ qs.appendChild(q);
+});
+function selectOption(i,j,el){
+ answers[i]=j;
+ document.querySelectorAll("#q"+i+" .option").forEach(x=>x.classList.remove("selected"));
+ el.classList.add("selected");
+ setTimeout(()=>{if(i<data.length-1)move(1);},180);
+}
+function show(){
+ document.querySelectorAll(".question").forEach((q,i)=>q.classList.toggle("active",i===current));
+ document.getElementById("bar").style.width=((current+1)/data.length*100)+"%";
+ document.getElementById("back").disabled=current===0;
+ document.getElementById("next").textContent=current===data.length-1?"See Result 💗":"Next →";
+}
+function move(dir){
+ if(dir>0 && answers[current]===null){alert("Please choose an option ❤️");return}
+ if(current===data.length-1 && dir>0){finish();return}
+ current=Math.max(0,Math.min(data.length-1,current+dir));show();
+}
+function finish(){
+ let score=answers.reduce((s,a,i)=>s+(a===data[i][2]?1:0),0);
+ document.getElementById("quizPage").style.display="none";
+ document.getElementById("result").style.display="block";
+ document.getElementById("score").textContent=score+" / 15";
+ let msg=score>=13?"🥹❤️ You know me sooo well!":score>=10?"😍 You know me really well!":score>=7?"😊 Not bad! இன்னும் கொஞ்சம் என்னைப் புரிஞ்சுக்கணும்!":"😂 Looks like you need to study your girl a little more!";
+ document.getElementById("message").textContent=msg;
+}
+function restart(){
+ current=0;answers=Array(data.length).fill(null);
+ document.querySelectorAll(".option").forEach(x=>x.classList.remove("selected"));
+ document.getElementById("result").style.display="none";
+ document.getElementById("quizPage").style.display="block";show();
+}
+show();
+</script>
+</body>
+</html>
